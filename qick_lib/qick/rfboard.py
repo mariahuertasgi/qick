@@ -1855,6 +1855,16 @@ class AdcDcCard216(DaughterCard216):
     GPIO_OUTPUTS = [("PD%d"%(i), 1) for i in range(2)] + [None]*2
     NAME = 'DC In'
 
+
+
+class AdcBalunCard216(DaughterCard216):
+    NCH = 0                 
+    CARDNUM_OFFSET = 4      
+    CHAIN_CLASS = None      
+    GPIO_OUTPUTS = []      
+    NAME = 'BALUN'
+
+
 class BoardSelection:
     """
     This class is used to enable one daughter card on the RF Board for the ZCU216, V1.
@@ -2325,14 +2335,22 @@ class RFQickSoc216V1(RFQickSoc):
                 card_id = gpio.read_reg("GPIO_REG") >> 4
                 logger.debug("DAC card %d: ID %d"%(card_num, card_id))
                 # TODO: recognize 15 as empty or balun, raise error on unrecognized
+               
+                
                 if card_id == 0:
                     # note: first version of DC-in had pinout bug that broke SPI reads
                     #if card_id == 0 or card_id == 15:
                     card = AdcDcCard216(card_num, self, gpio)
                 elif card_id == 2:
                     card = AdcRfCard216(card_num, self, gpio)
+                    
+                elif card_id == 15:
+                     card = AdcBalunCard216(card_num, self, gpio)
+
                 else:
                     card = None
+
+
             if card is None:
                 self.adc_chains.extend([None]*2)
             else:
